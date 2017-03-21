@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+import pika
+import sys
+
+conn_param= pika.ConnectionParameters(
+            host = 'localhost',
+                credentials = pika.credentials.PlainCredentials('admin','admin'))
+
+connection = pika.BlockingConnection(conn_param)
+
+
+channel = connection.channel()
+
+channel.exchange_declare(exchange='logs', type='fanout')
+
+message = sys.argv[1] if len(sys.argv)>1 else "info: Hello World!"
+channel.basic_publish(exchange='logs',routing_key='',body=message)
+print(" [x] Sent %r" % message)
+connection.close()
