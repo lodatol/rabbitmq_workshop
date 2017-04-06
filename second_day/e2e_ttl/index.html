@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
+        <script src="stomp.js"></script>
+<style type="text/css">
+.notification-single {
+    display: inline-block;
+    padding: 20px;
+    margin: 30px;
+    border: #9E9E9E;
+    border-width: medium;
+    border-style: solid;
+    opacity: 10;
+}
+</style>
+        <script>
+        var ws = null;
+        if (Modernizr.websockets)
+            ws = new WebSocket('ws://127.0.0.1:15674/ws');
+        else 
+            ws = new SockJS('http://127.0.0.1:15674/stomp');
+        var client = Stomp.over(ws);
+
+        (function (client, id_name, selector_single, jQuery){
+            client.connect('admin', 'admin', ()=>{
+                client.subscribe('/queue/notification',(message)=>{
+                    console.log(message);
+                    jQuery(id_name).append('<div class="'+ selector_single +'">'+
+                            'consumer: '+message.headers.customer+"<br/>"+
+                            'message: '+message.body+'</div>');
+                    setTimeout((message)=>{
+						if (Math.random()<0.5){
+                            message.nack();
+                            console.log("sending nack :(");
+                        }
+                        else {
+                            console.log("sending ack :)");
+                            message.ack();
+                        }
+                    }, 3900, message)
+                },  {ack: 'client', 'x-message-ttl': 4000});
+            }, ()=>{console.log("error")}, '/');
+        })(client, "#notification-block","notification-single",jQuery);
+        </script>
+    </head>
+    <body>
+        Hi, here you can find your fax notification!
+        <div id="notification-block">
+            
+        </div>
+    </body>
+</html>
