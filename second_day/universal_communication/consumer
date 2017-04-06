@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+import pika
+import sys
+
+conn_param= pika.ConnectionParameters(
+    host = 'localhost',
+    credentials = pika.credentials.PlainCredentials('admin','admin'))
+
+connection = pika.BlockingConnection(conn_param)
+
+channel = connection.channel()
+
+
+result = channel.queue_declare(exclusive=True)
+queue_name = result.method.queue
+
+number = sys.argv[1]
+if not number:
+    sys.stderr.write("Usage: %s [company] \n" % sys.argv[0])
+    sys.exit(1)
+
+
+
+print(' [*] Waiting for logs. To exit press CTRL+C')
+
+def callback(ch, method, properties, body):
+    print "{headers}\n{body}\n\n".format(
+            headers = properties.headers,
+            body = body)
+
+channel.basic_consume(callback,queue='universal_communication',no_ack=True)
+channel.start_consuming()
