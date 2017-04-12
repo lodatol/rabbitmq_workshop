@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+import pika
+import sys
+import subprocess as sub
+
+conn_param= pika.ConnectionParameters(
+    host = 'localhost',
+    credentials = pika.credentials.PlainCredentials('guest','guest'))
+
+connection = pika.BlockingConnection(conn_param)
+
+
+
+class SystemRpcClient(object):
+    def __init__(self):
+
+        self.channel = connection.channel()
+
+        result = self.channel.queue_declare(exclusive=True)
+        self.callback_queue = result.method.queue
+
+        self.channel.basic_consume(self.on_response, no_ack=True,
+                                   queue=self.callback_queue)
+
+    def on_response(self, ch, method, props, body):
+        if self.corr_id == props.correlation_id:
+            self.response = body
+
+    def call(self, command):
+        self.response = None
+        self.corr_id = command
+        self.channel.basic_publish(exchange='',
+                                   routing_key='system_command',
+                                   properties=pika.BasicProperties(
+                                         reply_to = self.callback_queue,
+                                         correlation_id = self.corr_id,
+                                         ),
+                                   body=command)
+        while self.response is None:
+            connection.process_data_events()
+        return self.response
+
+s_rpc = SystemRpcClient()
+
+import fileinput
+
+print(">>> ")
+for line in fileinput.input():
+    print("<<<\n %s\n\n" % s_rpc.call(line))
+    print(">>> ")

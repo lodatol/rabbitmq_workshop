@@ -17,7 +17,7 @@ channel.exchange_declare(exchange='fax', type='headers')
 company = sys.argv[1] if len(sys.argv) > 1 else 'abccompany'
 message = sys.argv[2] if len(sys.argv) > 2 else 'default message' 
 
-headers = { 'customer' : company , 'processor' : 'standard'}
+headers = { 'customer' : company , 'processor' : 'standard2'}
 
 
 

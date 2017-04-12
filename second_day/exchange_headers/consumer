@@ -20,7 +20,7 @@ number = sys.argv[1]
 if not number:
     sys.stderr.write("Usage: %s [company] \n" % sys.argv[0])
     sys.exit(1)
-arguments = {'customer': number, 'processor': 'standard', 'x-match':'all'}
+arguments = {'customer': number, 'processor': 'standard', 'x-match':'any'}
 
 
 print ("binding %r" % number)

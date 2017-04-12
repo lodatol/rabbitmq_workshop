@@ -39,7 +39,7 @@
                             console.log("sending ack :)");
                             message.ack();
                         }
-                    }, 3900, message)
+                    }, 100, message)
                 },  {ack: 'client', 'x-message-ttl': 4000});
             }, ()=>{console.log("error")}, '/');
         })(client, "#notification-block","notification-single",jQuery);
